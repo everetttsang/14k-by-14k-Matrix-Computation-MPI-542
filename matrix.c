@@ -100,9 +100,9 @@ int main(int argc, char** argv) {
 
   //print out the matrix
   //printa(a);
-  printf("\n");
+  //printf("\n");
   //printa(b);
-  printf("\n");
+  //printf("\n");
 
 
   //start time
@@ -117,32 +117,56 @@ int main(int argc, char** argv) {
     if(x==NUM_NODES){
       if(world_rank ==x){
         int i;
-	printf("Greetings from rank %d\n", world_rank);
-	printf("Remaining calculations %d\n", remainingCalculations);
+	double* c_temp;
+	c_temp = (double*) malloc(remainingCalculations*sizeof(double));
+	//printf("Greetings from rank %d\n", world_rank);
+	//printf("Remaining calculations %d\n", remainingCalculations);
         for(i=0; i< remainingCalculations; i++){
 	 
           compute(a,b,c,(x*calculations)+i);
-	  printf("%f\t",c[ (x*calculations)+i]);
+	  c_temp[i] = c[(x*calculations)+i];
+	  //printf("%f\t",c_temp[i]);
+	
         }
-	printf("\n");
+	MPI_Send(c_temp, remainingCalculations, MPI_DOUBLE, NUM_NODES+1, 0, MPI_COMM_WORLD);
+	//printf("\n");
 	//printa(c);
       }
 
     }
     else{
       if(world_rank == x){
-	printf("Greetings from rank %d\n", world_rank);
-	printf("Calculations %d\n", calculations);
+	//printf("Greetings from rank %d\n", world_rank);
+	//printf("Calculations %d\n", calculations);
         int i;
+	double* c_temp;
+	c_temp = (double*) malloc(calculations*sizeof(double));
         for(i=0; i< calculations; i++){
           compute(a,b,c,(x*calculations)+i);
-	  printf("%f\t",c[ (x*calculations)+i]);
+	  c_temp[i]= c[(x*calculations)+i];
+	  //printf("%f\t",c_temp[i]);
         }
-	printf("\n");
+	MPI_Send(c_temp, calculations, MPI_DOUBLE, NUM_NODES+1, 0, MPI_COMM_WORLD);
+	//printf("\n");
 	//printa(c);
       }
 
     }
+  }
+  if(world_rank == NUM_NODES+1){
+	
+	int i;
+	printa(a);
+	printa(b);
+	for(i=0; i<=NUM_NODES; i++){	
+	    if(i==NUM_NODES){ 
+		MPI_Recv(&c[NUM_NODES*calculations], remainingCalculations, MPI_DOUBLE, NUM_NODES, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            }
+	    else{
+		MPI_Recv(&c[i*calculations], calculations, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		}
+	}
+	printa(c);
   }
 
 

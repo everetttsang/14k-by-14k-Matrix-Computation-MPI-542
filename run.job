@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --ntasks=1
+#SBATCH --ntasks=8
 #SBATCH --cpus-per-task=1
 
 module load gcc/8.3.0
@@ -7,4 +7,4 @@ module load openmpi/4.0.2
 module load pmix
 
 
-mpirun -n 1 ./matrix
+mpirun -n 8 ./matrix
