@@ -13,7 +13,7 @@
 #include <net/if.h>
 #include <unistd.h>
 //define matrix size
-#define N_SIZE 100
+#define N_SIZE 10
 //define max double size for each element
 #define MAX_DATA_SIZE 10
 #define NUM_NODES 6   
@@ -112,18 +112,25 @@ int main(int argc, char** argv) {
   int remainingCalculations = (N_SIZE*N_SIZE)%NUM_NODES;
   int x;
   int counter=0;
+  int done =0; 
   for(x=0; x<=NUM_NODES; x++){
     if(x==NUM_NODES){
       if(world_rank ==x){
         int i;
+	printf("Greetings from rank %d\n", world_rank);
+	printf("Remaining calculations %d\n", remainingCalculations);
         for(i=0; i< remainingCalculations; i++){
+	 
           compute(a,b,c,(x*calculations)+i);
+	  printa(c);
         }
       }
 
     }
     else{
       if(world_rank == x){
+	printf("Greetings from rank %d\n", world_rank);
+	printf("Calculations %d\n", calculations);
         int i;
         for(i=0; i< calculations; i++){
           compute(a,b,c,(x*calculations)+i);
@@ -133,11 +140,14 @@ int main(int argc, char** argv) {
     }
   }
 
- // printa(c);
-  int j;
-  for(j=0; j<100; j++){
-    printf("%f\t", c[j]);
-  }
+
+
+  
+  
+ // int j;
+  //for(j=0; j<100; j++){
+   // printf("%f\t", c[j]);
+  //}
   printf("\n");
   //stop time
   // Finalize the MPI environment. No more MPI calls can be made after this
