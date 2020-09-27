@@ -3,7 +3,7 @@ MPICC?=mpicc
 
 all: ${EXECS}
 
-mpi_performance_test: matrix.c
+matrix: matrix.c
 	${MPICC} -o matrix matrix.c -lm
 
 clean:
