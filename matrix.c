@@ -12,6 +12,57 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <unistd.h>
+//define matrix size
+#define N_SIZE 5
+//define max double size for each element
+#define MAX_DATA_SIZE 10
+
+//generates doubles
+double generate(double range){
+  double b = RAND_MAX / range;
+  return rand()/b;
+}
+
+//prints an array
+void printa(double* array){
+  int i=0;
+  for (i=0; i< (N_SIZE *N_SIZE); i++){
+    if( i % N_SIZE ==0){
+      printf("\n");
+    }
+    printf("%f\t", array[i]);
+  }
+  printf("\n");
+}
+
+//populate with random doubles bounded by MAX_DATA_SIZE.
+void populate(double* array){
+  int i=0;
+  for (i=0; i< (N_SIZE *N_SIZE); i++){
+    array[i] = generate(MAX_DATA_SIZE);
+  }
+}
+
+//compute the value of one cell in matrix 'c'
+void compute(double* a, double* b, double* c, int element){
+  int row = (element / N_SIZE) ;
+  int col = (element % N_SIZE) ;
+
+  printf("(%d,%d)\n", row, col);
+
+  double sum=0.0;
+  int start_row = row*N_SIZE;
+  int start_col = col;
+  int i;
+  for (i=0; i< N_SIZE; i++){
+    printf("(Element %d*%d)\n", start_row+i, start_col+(i*N_SIZE));
+    sum += a[start_row+i]*b[start_col+(i*N_SIZE)];
+
+  }
+  c[element] = sum;
+
+}
+
 int main(int argc, char** argv) {
   // Initialize the MPI environment. The two arguments to MPI Init are not
   // currently used by MPI implementations, but are there in case future
@@ -33,12 +84,34 @@ int main(int argc, char** argv) {
 
   struct timeval start;
   struct timeval end;
+  double *a;
+  double *b;
+  double *c;
 
-  //malloc buffers
+  //malloc buffers to doubles of value 0.00...
+  a = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
+  b = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
+  c = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
+
+  //populate arrays
+  populate(a);
+  populate(b);
+
+  //print out the matrix
+  printa(a);
+  printf("\n");
+  printa(b);
+  printf("\n");
+
 
   //start time
 
   //matrix multiplication
+  int i;
+  for(i=0; i< N_SIZE*N_SIZE; i++){
+    compute(a,b,c,i);
+  }
+  printa(c);
 
   //stop time
   // Finalize the MPI environment. No more MPI calls can be made after this
@@ -46,5 +119,5 @@ int main(int argc, char** argv) {
 
   //check output
 
-  ..print results
+  //print results
 }
