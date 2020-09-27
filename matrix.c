@@ -122,8 +122,10 @@ int main(int argc, char** argv) {
         for(i=0; i< remainingCalculations; i++){
 	 
           compute(a,b,c,(x*calculations)+i);
-	  printa(c);
+	  printf("%f\t",c[ (x*calculations)+i]);
         }
+	printf("\n");
+	//printa(c);
       }
 
     }
@@ -134,7 +136,10 @@ int main(int argc, char** argv) {
         int i;
         for(i=0; i< calculations; i++){
           compute(a,b,c,(x*calculations)+i);
+	  printf("%f\t",c[ (x*calculations)+i]);
         }
+	printf("\n");
+	//printa(c);
       }
 
     }
