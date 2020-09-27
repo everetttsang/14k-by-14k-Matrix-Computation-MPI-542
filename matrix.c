@@ -13,7 +13,7 @@
 #include <net/if.h>
 #include <unistd.h>
 //define matrix size
-#define N_SIZE 5
+#define N_SIZE 14000 
 //define max double size for each element
 #define MAX_DATA_SIZE 10
 
@@ -48,14 +48,14 @@ void compute(double* a, double* b, double* c, int element){
   int row = (element / N_SIZE) ;
   int col = (element % N_SIZE) ;
 
-  printf("(%d,%d)\n", row, col);
+  //printf("(%d,%d)\n", row, col);
 
   double sum=0.0;
   int start_row = row*N_SIZE;
   int start_col = col;
   int i;
   for (i=0; i< N_SIZE; i++){
-    printf("(Element %d*%d)\n", start_row+i, start_col+(i*N_SIZE));
+    //printf("(Element %d*%d)\n", start_row+i, start_col+(i*N_SIZE));
     sum += a[start_row+i]*b[start_col+(i*N_SIZE)];
 
   }
@@ -98,9 +98,9 @@ int main(int argc, char** argv) {
   populate(b);
 
   //print out the matrix
-  printa(a);
+  //printa(a);
   printf("\n");
-  printa(b);
+  //printa(b);
   printf("\n");
 
 
@@ -111,8 +111,12 @@ int main(int argc, char** argv) {
   for(i=0; i< N_SIZE*N_SIZE; i++){
     compute(a,b,c,i);
   }
-  printa(c);
-
+ // printa(c);
+  int j;
+  for(j=0; j<100; j++){
+    printf("%f\t", c[j]);
+  }
+  printf("\n");
   //stop time
   // Finalize the MPI environment. No more MPI calls can be made after this
   MPI_Finalize();
