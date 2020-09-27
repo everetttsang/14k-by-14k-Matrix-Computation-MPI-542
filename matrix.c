@@ -16,7 +16,10 @@
 #define N_SIZE 10
 //define max double size for each element
 #define MAX_DATA_SIZE 10
-#define NUM_NODES 6   
+//specify the number of nodes to use for computation @ the full sizeof
+//an additional node is needed to compute the remaining Calculations
+//another additional node is needed to receive the resulting segments from the computation nodes and write into 1 results matrix
+#define NUM_NODES 6
 
 //generates doubles
 double generate(double range){
@@ -58,10 +61,8 @@ void compute(double* a, double* b, double* c, int element){
   for (i=0; i< N_SIZE; i++){
     //printf("(Element %d*%d)\n", start_row+i, start_col+(i*N_SIZE));
     sum += a[start_row+i]*b[start_col+(i*N_SIZE)];
-
   }
   c[element] = sum;
-
 }
 
 int main(int argc, char** argv) {
@@ -98,13 +99,6 @@ int main(int argc, char** argv) {
   populate(a);
   populate(b);
 
-  //print out the matrix
-  //printa(a);
-  //printf("\n");
-  //printa(b);
-  //printf("\n");
-
-
   //start time
 
   //matrix multiplication
@@ -112,79 +106,59 @@ int main(int argc, char** argv) {
   int remainingCalculations = (N_SIZE*N_SIZE)%NUM_NODES;
   int x;
   int counter=0;
-  int done =0; 
+  int done =0;
   for(x=0; x<=NUM_NODES; x++){
     if(x==NUM_NODES){
       if(world_rank ==x){
         int i;
-	double* c_temp;
-	c_temp = (double*) malloc(remainingCalculations*sizeof(double));
-	//printf("Greetings from rank %d\n", world_rank);
-	//printf("Remaining calculations %d\n", remainingCalculations);
+        double* c_temp;
+        c_temp = (double*) malloc(remainingCalculations*sizeof(double));
         for(i=0; i< remainingCalculations; i++){
-	 
           compute(a,b,c,(x*calculations)+i);
-	  c_temp[i] = c[(x*calculations)+i];
-	  //printf("%f\t",c_temp[i]);
-	
+          c_temp[i] = c[(x*calculations)+i];
         }
-	MPI_Send(c_temp, remainingCalculations, MPI_DOUBLE, NUM_NODES+1, 0, MPI_COMM_WORLD);
-	//printf("\n");
-	//printa(c);
+        MPI_Send(c_temp, remainingCalculations, MPI_DOUBLE, NUM_NODES+1, 0, MPI_COMM_WORLD);
       }
 
     }
     else{
       if(world_rank == x){
-	//printf("Greetings from rank %d\n", world_rank);
-	//printf("Calculations %d\n", calculations);
         int i;
-	double* c_temp;
-	c_temp = (double*) malloc(calculations*sizeof(double));
+        double* c_temp;
+        c_temp = (double*) malloc(calculations*sizeof(double));
         for(i=0; i< calculations; i++){
           compute(a,b,c,(x*calculations)+i);
-	  c_temp[i]= c[(x*calculations)+i];
-	  //printf("%f\t",c_temp[i]);
+          c_temp[i]= c[(x*calculations)+i];
         }
-	MPI_Send(c_temp, calculations, MPI_DOUBLE, NUM_NODES+1, 0, MPI_COMM_WORLD);
-	//printf("\n");
-	//printa(c);
+        MPI_Send(c_temp, calculations, MPI_DOUBLE, NUM_NODES+1, 0, MPI_COMM_WORLD);
+
       }
 
     }
   }
+
+  //NODE receives results from computation nodes, and writes into a unified c matrix.
   if(world_rank == NUM_NODES+1){
-	
-	int i;
-	printa(a);
-	printa(b);
-	for(i=0; i<=NUM_NODES; i++){	
-	    if(i==NUM_NODES){ 
-		MPI_Recv(&c[NUM_NODES*calculations], remainingCalculations, MPI_DOUBLE, NUM_NODES, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            }
-	    else{
-		MPI_Recv(&c[i*calculations], calculations, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		}
-	}
-	printa(c);
+    int i;
+    printa(a);
+    printa(b);
+    for(i=0; i<=NUM_NODES; i++){
+      if(i==NUM_NODES){
+        MPI_Recv(&c[NUM_NODES*calculations], remainingCalculations, MPI_DOUBLE, NUM_NODES, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      }
+      else{
+        MPI_Recv(&c[i*calculations], calculations, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      }
+    }
+    //stop time
+    //check output
+    //print results
+    printa(c);
   }
 
-
-
-  
-  
- // int j;
-  //for(j=0; j<100; j++){
-   // printf("%f\t", c[j]);
-  //}
-  printf("\n");
-  //stop time
   // Finalize the MPI environment. No more MPI calls can be made after this
   MPI_Finalize();
 
-  //check output
-
-  //print results
   free(a);
   free(b);
   free(c);
