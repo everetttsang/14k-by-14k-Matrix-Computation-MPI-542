@@ -13,9 +13,10 @@
 #include <net/if.h>
 #include <unistd.h>
 //define matrix size
-#define N_SIZE 14000 
+#define N_SIZE 100
 //define max double size for each element
 #define MAX_DATA_SIZE 10
+#define NUM_NODES 6   
 
 //generates doubles
 double generate(double range){
@@ -107,10 +108,31 @@ int main(int argc, char** argv) {
   //start time
 
   //matrix multiplication
-  int i;
-  for(i=0; i< N_SIZE*N_SIZE; i++){
-    compute(a,b,c,i);
+  int calculations =( N_SIZE*N_SIZE ) / NUM_NODES;
+  int remainingCalculations = (N_SIZE*N_SIZE)%NUM_NODES;
+  int x;
+  int counter=0;
+  for(x=0; x<=NUM_NODES; x++){
+    if(x==NUM_NODES){
+      if(world_rank ==x){
+        int i;
+        for(i=0; i< remainingCalculations; i++){
+          compute(a,b,c,(x*calculations)+i);
+        }
+      }
+
+    }
+    else{
+      if(world_rank == x){
+        int i;
+        for(i=0; i< calculations; i++){
+          compute(a,b,c,(x*calculations)+i);
+        }
+      }
+
+    }
   }
+
  // printa(c);
   int j;
   for(j=0; j<100; j++){
@@ -124,4 +146,7 @@ int main(int argc, char** argv) {
   //check output
 
   //print results
+  free(a);
+  free(b);
+  free(c);
 }
