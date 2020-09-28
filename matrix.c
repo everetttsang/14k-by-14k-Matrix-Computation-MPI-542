@@ -1,5 +1,7 @@
 #include <mpi.h>
+#include <float.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <math.h>
 #include <sys/time.h>
 #include <stdlib.h>
@@ -66,6 +68,10 @@ void compute(double* a, double* b, double* c, int element){
   c[element] = sum;
 }
 
+bool doubles_equal(double a, double b){
+  return (fabs(a - b) < (DBL_EPSILON * fabs(a + b)));
+}
+
 void vector_product(double *matrix, double *vector, double *output){
   int i;
   int j;
@@ -97,19 +103,25 @@ void check_output(double *A, double *B, double *C){
   }
 
   // Calculate vector products ABx and Cx
-  vector_product(A, x, y);
-  vector_product(B, y, ABx);
+  vector_product(B, x, y);
+  vector_product(A, y, ABx);
   vector_product(C, x, Cx);
 
   // Check if ABx = Cx
   for (int i = 0; i < N_SIZE; i++){
-    if (ABx[i] != Cx[i]){
+    if (!doubles_equal(ABx[i], Cx[i])){
       printf("ERROR: INCORRECT OUTPUT\n");
+      
+      free(x);
+      free(y);
+      free(ABx);
+      free(Cx);
+      return;
     }
   }
 
   printf("CONGRATULATIONS, OUTPUT SUCCESSFUL!");
-  
+ 
   free(x);
   free(y);
   free(ABx);
@@ -206,6 +218,8 @@ int main(int argc, char** argv) {
    
     //print results
     //printa(c);
+    
+    check_output(a, b, c);
 
     int j;
     int marker = (NUM_NODES-1)*calculations;
