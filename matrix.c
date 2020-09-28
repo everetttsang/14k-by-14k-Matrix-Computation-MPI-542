@@ -66,6 +66,51 @@ void compute(double* a, double* b, double* c, int element){
   c[element] = sum;
 }
 
+void vector_product(double *matrix, double *vector, double *output){
+  int i;
+  int j;
+
+  for (int i = 0; i < N_SIZE; i++){
+    output[i] = 0.0;
+  }
+
+  for (int i = 0; i < N_SIZE; i++){
+    for (int j = 0; j < N_SIZE; j++){
+      output[i] += (matrix[i][j] * vector[j]);
+    }
+  }
+}
+
+void check_output(double *A, double *B, double *C){
+  // To check for correctness, verify vector product ABx = Cx
+
+  // Define array x
+  double *x = (double*) malloc(N_SIZE * sizeof(double));
+  double *y = (double*) malloc(N_SIZE * sizeof(double));
+  double *ABx = (double*) malloc(N_SIZE * sizeof(double));
+  double *Cx = (double*) malloc(N_SIZE * sizeof(double));
+
+  // Populate x with numbers between 0-1
+  int i;
+  for (int i = 0; i < N_SIZE; i++){
+    x[i] = rand() / (double) RAND_MAX;
+  }
+
+  // Calculate vector products ABx and Cx
+  vector_product(A, x, y);
+  vector_product(B, y, ABx);
+  vector_product(C, x, Cx);
+
+  // Check if ABx = Cx
+  for (int i = 0; i < N_SIZE; i++){
+    if (ABx[i] != Cx[i]){
+      printf("ERROR: INCORRECT OUTPUT\n")
+    }
+  }
+
+  printf("CONGRATULATIONS, OUTPUT SUCCESSFUL!");
+}
+
 int main(int argc, char** argv) {
   // Initialize the MPI environment. The two arguments to MPI Init are not
   // currently used by MPI implementations, but are there in case future
@@ -156,10 +201,11 @@ int main(int argc, char** argv) {
    
     //print results
     //printa(c);
+
     int j;
     int marker = (NUM_NODES-1)*calculations;
     for(j=marker; j< marker+ calculations; j++){
-	printf("%f\t", c[j]);
+	    printf("%f\t", c[j]);
     }
     
  }
