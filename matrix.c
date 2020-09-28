@@ -69,7 +69,7 @@ void compute(double* a, double* b, double* c, int element){
 }
 
 bool doubles_equal(double a, double b){
-  return (fabs(a - b) < 0.00001);
+  return (fabs(a - b) < 0.001);
 }
 
 void vector_product(double *matrix, double *vector, double *output){
