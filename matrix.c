@@ -76,7 +76,7 @@ void vector_product(double *matrix, double *vector, double *output){
 
   for (int i = 0; i < N_SIZE; i++){
     for (int j = 0; j < N_SIZE; j++){
-      output[i] += (matrix[i][j] * vector[j]);
+      output[i] += (*(matrix + (i * N_SIZE) + j)) * vector[j];
     }
   }
 }
@@ -104,11 +104,16 @@ void check_output(double *A, double *B, double *C){
   // Check if ABx = Cx
   for (int i = 0; i < N_SIZE; i++){
     if (ABx[i] != Cx[i]){
-      printf("ERROR: INCORRECT OUTPUT\n")
+      printf("ERROR: INCORRECT OUTPUT\n");
     }
   }
 
   printf("CONGRATULATIONS, OUTPUT SUCCESSFUL!");
+  
+  free(x);
+  free(y);
+  free(ABx);
+  free(Cx);
 }
 
 int main(int argc, char** argv) {
