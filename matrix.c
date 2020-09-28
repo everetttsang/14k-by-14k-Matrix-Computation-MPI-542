@@ -69,7 +69,7 @@ void compute(double* a, double* b, double* c, int element){
 }
 
 bool doubles_equal(double a, double b){
-  return (fabs(a - b) < (DBL_EPSILON * fabs(a + b)));
+  return (fabs(a - b) < 0.00001);
 }
 
 void vector_product(double *matrix, double *vector, double *output){
@@ -111,7 +111,7 @@ void check_output(double *A, double *B, double *C){
   for (int i = 0; i < N_SIZE; i++){
     if (!doubles_equal(ABx[i], Cx[i])){
       printf("ERROR: INCORRECT OUTPUT\n");
-      
+      printf("%f != %f\n", ABx[i], Cx[i]);      
       free(x);
       free(y);
       free(ABx);
@@ -224,7 +224,7 @@ int main(int argc, char** argv) {
     int j;
     int marker = (NUM_NODES-1)*calculations;
     for(j=marker; j< marker+ calculations; j++){
-	    printf("%f\t", c[j]);
+//	    printf("%f\t", c[j]);
     }
     
  }
