@@ -13,13 +13,14 @@
 #include <net/if.h>
 #include <unistd.h>
 //define matrix size
-#define N_SIZE 10
+#define N_SIZE 14000
 //define max double size for each element
 #define MAX_DATA_SIZE 10
 //specify the number of nodes to use for computation @ the full sizeof
 //an additional node is needed to compute the remaining Calculations
 //another additional node is needed to receive the resulting segments from the computation nodes and write into 1 results matrix
-#define NUM_NODES 6
+#define NUM_NODES 1000
+
 
 //generates doubles
 double generate(double range){
@@ -140,8 +141,8 @@ int main(int argc, char** argv) {
   //NODE receives results from computation nodes, and writes into a unified c matrix.
   if(world_rank == NUM_NODES+1){
     int i;
-    printa(a);
-    printa(b);
+    //printa(a);
+    //printa(b);
     for(i=0; i<=NUM_NODES; i++){
       if(i==NUM_NODES){
         MPI_Recv(&c[NUM_NODES*calculations], remainingCalculations, MPI_DOUBLE, NUM_NODES, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -152,9 +153,16 @@ int main(int argc, char** argv) {
     }
     //stop time
     //check output
+   
     //print results
-    printa(c);
-  }
+    //printa(c);
+    int j;
+    int marker = (NUM_NODES-1)*calculations;
+    for(j=marker; j< marker+ calculations; j++){
+	printf("%f\t", c[j]);
+    }
+    
+ }
 
   // Finalize the MPI environment. No more MPI calls can be made after this
   MPI_Finalize();
