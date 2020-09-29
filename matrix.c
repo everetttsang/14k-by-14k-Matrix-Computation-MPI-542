@@ -111,21 +111,21 @@ void compute_matrix(double* a, double* b, double* c, int element, int size){
   int i;
   for (i=0; i< size; i++){
 
-    printf("Loaded block a:%d, and block b:%d for computation\n", start_row+i, start_col+(i*size));
+    //printf("Loaded block a:%d, and block b:%d for computation\n", start_row+i, start_col+(i*size));
     load_block(a, block_a, start_row+i);
     load_block(b,block_b, start_col+(i*size));
-    printa(block_a, size);
-    printa(block_b, size);
+    //printa(block_a, size);
+    //printa(block_b, size);
     int j;
     for(j=0; j< size*size; j++){
       compute(block_a,block_b, c, j,size );
     }
-    printa(c, size);
+    //printa(c, size);
     //printf("(Element %d*%d)\n", start_row+i, start_col+(i*N_SIZE));
     matrix_add(c, sum, c, size);
   }
-  printf("Sum: \n");
-  printa(c,size);
+  //printf("Sum: \n");
+  //printa(c,size);
 }
 
 bool doubles_equal(double a, double b){
@@ -219,9 +219,7 @@ int main(int argc, char** argv) {
   //malloc buffers to doubles of value 0.00...
   a = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
   b = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
-  c = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
-
-  //populate arrays
+  c = (double*) malloc(N_SIZE*N_SIZE*sizeof(double)); //populate arrays
   populate(a);
   populate(b);
   printa(a, N_SIZE);
@@ -229,7 +227,7 @@ int main(int argc, char** argv) {
   block_a = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
   block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
   int NUM_BLOCKS = (N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE);
-  printa(a,N_SIZE);
+  //printa(a,N_SIZE);
   int x;
 
   //start time
@@ -242,8 +240,8 @@ int main(int argc, char** argv) {
     if(world_rank==i){
       double*c_block = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
       compute_matrix(a,b,c_block,i, BLOCK_SIZE);
-      MPI_Send(c_block, BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, NUM_BLOCKS, 0, MPI_COMM_WORLD);
-      free(c_block);
+      //MPI_Send(c_block, BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, NUM_BLOCKS, 0, MPI_COMM_WORLD);
+      //free(c_block);
     }
   }
   if(world_rank == NUM_BLOCKS){
@@ -251,10 +249,10 @@ int main(int argc, char** argv) {
     //printa(a,N_SIZE);
     //printa(b, N_SIZE);
     for(j=0; j<=NUM_BLOCKS; j++){
-        MPI_Recv(&c[i*BLOCK_SIZE], BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        //MPI_Recv(&c[j*BLOCK_SIZE], BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
     }
-    print(b,N_SIZE);
+    //printa(c,N_SIZE);
   }
   // if(world_rank ==x){
   //         int i;
