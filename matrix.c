@@ -189,6 +189,7 @@ int main(int argc, char** argv) {
   block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
 
   load_block(a, block_a, 3);
+  printa(a, N_SIZE);
   printa(block_a, BLOCK_SIZE);
 
 
