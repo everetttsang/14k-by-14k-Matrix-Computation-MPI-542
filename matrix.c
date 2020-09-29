@@ -245,9 +245,12 @@ int main(int argc, char** argv) {
 
     }
   }
+  int j;
+  for(j=0; j<NUM_BLOCKS; j++){
 
-  compute_matrix(a,b,c,0, BLOCK_SIZE);
 
+     compute_matrix(a,b,c,j, BLOCK_SIZE);
+  }
   //start time
 
   //matrix multiplication
