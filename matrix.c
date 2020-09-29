@@ -15,14 +15,14 @@
 #include <net/if.h>
 #include <unistd.h>
 //define matrix size
-#define N_SIZE 4
+#define N_SIZE 14000
 //define max double size for each element
 #define MAX_DATA_SIZE 10
 //specify the number of nodes to use for computation @ the full sizeof
 //an additional node is needed to compute the remaining Calculations
 //another additional node is needed to receive the resulting segments from the computation nodes and write into 1 results matrix
 #define NUM_NODES 2
-#define BLOCK_SIZE 2
+#define BLOCK_SIZE 1400
 
 
 //generates doubles
@@ -74,7 +74,7 @@ void load_block(double* input, double* output, int block_no){
   }
 }
 
-void write_block(double* input, double* output, int dest_block_no){
+void write_block(double* input, double* output, int block_no){
   // int block_i;
   int NUM_BLOCKS = (N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE);
   // for(block_i=0; i<NUM_BLOCKS; block_i++){
@@ -122,30 +122,31 @@ void matrix_add(double*a, double*b, double*c, int size){
 }
 //compute the block matrix // size is the size of the block matrix
 void compute_matrix(double* a, double* b, double* c, int element, int size){
-  int row = (element / size) ;
-  int col = (element % size) ;
+  int num_blocks = (N_SIZE/BLOCK_SIZE);
+  int row = (element / (N_SIZE/BLOCK_SIZE)) ;
+  int col = (element % (N_SIZE/BLOCK_SIZE)) ;
 
   double* block_a = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
   double* block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
-  double* result= (double*) malloc(size*size*sizeof(double));
-  double* sum= (double*) malloc(size*size*sizeof(double));
+  double* result= (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  double* sum= (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
   int start_row = row*size;
   int start_col = col;
   int i;
-  for (i=0; i< size; i++){
+  for (i=0; i< num_blocks; i++){
 
-    printf("Loaded block a:%d, and block b:%d for computation of block %d\n", start_row+i, start_col+(i*size),element);
-    load_block(a, block_a, start_row+i);
-    load_block(b,block_b, start_col+(i*size));
-    printa(block_a, size);
-    printa(block_b, size);
+    //printf("Loaded block a:%d, and block b:%d for computation of block %d Row%d Col%d\n", (row*num_blocks)+i, col+(num_blocks*i),element,row,col);
+    load_block(a, block_a, (row*num_blocks)+i );
+    load_block(b,block_b, col+(num_blocks*i));
+    //printa(block_a, size);
+    //printa(block_b, size);
     int j;
     //printa(c, size);
-    for(j=0; j< size*size; j++){
+    for(j=0; j< BLOCK_SIZE*BLOCK_SIZE; j++){
       //load_block(a, block_a, start_row+j);
       //load_block(b, block_b, start_col+(j*size));
       compute(block_a,block_b, result, j,BLOCK_SIZE );
-      printf("Element %d of Block %d. Addition %d: %f\n",j, element, i, result[j]);
+      //printf("Element %d of Block %d. Addition %d: %f\n",j, element, i, result[j]);
     }
     //printf("Result\n");
     //printa(c, size);
@@ -158,9 +159,10 @@ void compute_matrix(double* a, double* b, double* c, int element, int size){
   }
   //printf("Sum: \n");
   //printa(c,size);
-  //free(block_a);
-  //free(block_b);
-  //free(sum);
+  free(block_a);
+  free(block_b);
+  free(sum);
+  free(result);
 }
 
 bool doubles_equal(double a, double b){
@@ -215,7 +217,7 @@ void check_output(double *A, double *B, double *C){
     }
   }
 
-  printf("CONGRATULATIONS, OUTPUT SUCCESSFUL!");
+  printf("CONGRATULATIONS, OUTPUT SUCCESSFUL!\n");
 
   free(x);
   free(y);
@@ -247,15 +249,15 @@ int main(int argc, char** argv) {
   double *a;
   double *b;
   double *c;
-
+  double *d;
   double *block_a;
-  double *block_b;
+  //double *block_b;
 
   //malloc buffers to doubles of value 0.00...
   a = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
   b = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
   c = (double*) malloc(N_SIZE*N_SIZE*sizeof(double)); //populate arrays
-  d = (double*) malloc(N_SIZE*N_SIZE*sizeof(double)); //organized final array
+  //d = (double*) malloc(N_SIZE*N_SIZE*sizeof(double)); //organized final array
   populate(a);
   populate(b);
   //printa(a, N_SIZE);
@@ -276,26 +278,28 @@ int main(int argc, char** argv) {
     if(world_rank==i){
       double*c_block = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
 
-      compute_matrix(a,b,c_block,i, N_SIZE/BLOCK_SIZE);
+      compute_matrix(a,b,c_block,i,BLOCK_SIZE);
       //printa(c_block, BLOCK_SIZE);
       MPI_Send(c_block, BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, NUM_BLOCKS, 0, MPI_COMM_WORLD);
-      //free(c_block);
+      free(c_block);
     }
   }
   if(world_rank == NUM_BLOCKS){
-    printf("Greetings from rank %d\n", world_rank);
+    //printf("Greetings from rank %d\n", world_rank);
     int j;
     //printa(a,N_SIZE);
     //printa(b, N_SIZE);
+    double* d = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
+    double* rcv = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
     for(j=0; j<NUM_BLOCKS; j++){
         MPI_Recv(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         write_block(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], d,j);
-        printa(d, BLOCK_SIZE*BLOCK_SIZE);
+       // printa(d, BLOCK_SIZE);
     }
-    printa(a,N_SIZE);
-    printa(b,N_SIZE);
-   // printa(c,N_SIZE);
-
+    //printa(a,N_SIZE);
+    //printa(b,N_SIZE);
+    //printa(c,N_SIZE);
+    check_output(a, b, d);
   }
   // if(world_rank ==x){
   //         int i;
@@ -380,4 +384,5 @@ int main(int argc, char** argv) {
   free(a);
   free(b);
   free(c);
+  free(d);
 }
