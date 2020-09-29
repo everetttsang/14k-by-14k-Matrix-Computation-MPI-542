@@ -74,6 +74,29 @@ void load_block(double* input, double* output, int block_no){
   }
 }
 
+void write_block(double* input, double* output, int dest_block_no){
+  // int block_i;
+  int NUM_BLOCKS = (N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE);
+  // for(block_i=0; i<NUM_BLOCKS; block_i++){
+  //
+  // }
+  int start_index;
+  if((block_no%(N_SIZE/BLOCK_SIZE) ==0)) start_index = block_no*BLOCK_SIZE*BLOCK_SIZE;
+  else{
+    start_index = ((block_no-(block_no%(N_SIZE/BLOCK_SIZE)))*BLOCK_SIZE*BLOCK_SIZE)+((block_no%(N_SIZE/BLOCK_SIZE))*BLOCK_SIZE);
+  }
+  //printf("Load block %d. Starting index: %d\n", block_no, start_index);
+  int index=0;
+  int i;
+  for (i=0; i<BLOCK_SIZE; i++){
+    int j;
+    for(j=0; j<BLOCK_SIZE; j++) {
+      output[(start_index+(i*N_SIZE)+j)] = input[index];
+      index+=1;
+    }
+  }
+}
+
 //compute the value of one cell in matrix 'c'
 void compute(double* a, double* b, double* c, int element, int size){
   int row = (element / size) ;
@@ -232,6 +255,7 @@ int main(int argc, char** argv) {
   a = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
   b = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
   c = (double*) malloc(N_SIZE*N_SIZE*sizeof(double)); //populate arrays
+  d = (double*) malloc(N_SIZE*N_SIZE*sizeof(double)); //organized final array
   populate(a);
   populate(b);
   //printa(a, N_SIZE);
@@ -251,7 +275,7 @@ int main(int argc, char** argv) {
   for(i=0; i<NUM_BLOCKS; i++){
     if(world_rank==i){
       double*c_block = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
- 
+
       compute_matrix(a,b,c_block,i, N_SIZE/BLOCK_SIZE);
       //printa(c_block, BLOCK_SIZE);
       MPI_Send(c_block, BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, NUM_BLOCKS, 0, MPI_COMM_WORLD);
@@ -265,11 +289,13 @@ int main(int argc, char** argv) {
     //printa(b, N_SIZE);
     for(j=0; j<NUM_BLOCKS; j++){
         MPI_Recv(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        printa(c, BLOCK_SIZE*BLOCK_SIZE);
+        write_block(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], d,j);
+        printa(d, BLOCK_SIZE*BLOCK_SIZE);
     }
     printa(a,N_SIZE);
     printa(b,N_SIZE);
    // printa(c,N_SIZE);
+
   }
   // if(world_rank ==x){
   //         int i;
