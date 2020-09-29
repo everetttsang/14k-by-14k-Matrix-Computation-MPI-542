@@ -64,7 +64,8 @@ void load_block(double* input, double* output, int block_no){
   for (i=0; i<BLOCK_SIZE; i++){
     int j;
     for(j=0; j<BLOCK_SIZE; j++) {
-      output[c] = input[(starting_index*i)+j];
+      output[index] = input[(start_index*i)+j];
+      index+=1;
     }
   }
 }
@@ -184,8 +185,8 @@ int main(int argc, char** argv) {
   populate(a);
   populate(b);
 
-  block_a = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*size(double));
-  block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*size(double));
+  block_a = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
 
   load_block(a, block_a, 3);
   printa(block_a, BLOCK_SIZE);
