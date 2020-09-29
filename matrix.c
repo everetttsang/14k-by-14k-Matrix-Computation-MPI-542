@@ -64,7 +64,7 @@ void load_block(double* input, double* output, int block_no){
   for (i=0; i<BLOCK_SIZE; i++){
     int j;
     for(j=0; j<BLOCK_SIZE; j++) {
-      output[index] = input[(start_index*i)+j];
+      output[index] = input[(start_index+(i*BLOCK_SIZE)+j)];
       index+=1;
     }
   }
