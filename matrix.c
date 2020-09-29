@@ -15,14 +15,14 @@
 #include <net/if.h>
 #include <unistd.h>
 //define matrix size
-#define N_SIZE 4
+#define N_SIZE 16
 //define max double size for each element
-#define MAX_DATA_SIZE 10
+#define MAX_DATA_SIZE 16
 //specify the number of nodes to use for computation @ the full sizeof
 //an additional node is needed to compute the remaining Calculations
 //another additional node is needed to receive the resulting segments from the computation nodes and write into 1 results matrix
 #define NUM_NODES 2
-#define BLOCK_SIZE 2
+#define BLOCK_SIZE 4
 
 
 //generates doubles
@@ -53,18 +53,22 @@ void populate(double* array){
 
 void load_block(double* input, double* output, int block_no){
   // int block_i;
-  // int NUM_BLOCKS = (N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE);
+  int NUM_BLOCKS = (N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE);
   // for(block_i=0; i<NUM_BLOCKS; block_i++){
   //
   // }
-
-  int start_index = (block_no*BLOCK_SIZE*BLOCK_SIZE);
+  int start_index;
+  if((block_no%(N_SIZE/BLOCK_SIZE) ==0)) start_index = block_no*BLOCK_SIZE*BLOCK_SIZE;
+  else{
+  	start_index = ((block_no-(block_no%(N_SIZE/BLOCK_SIZE)))*BLOCK_SIZE*BLOCK_SIZE)+((block_no%(N_SIZE/BLOCK_SIZE))*BLOCK_SIZE);
+  }
+  printf("Load block %d. Starting index: %d\n", block_no, start_index);
   int index=0;
   int i;
   for (i=0; i<BLOCK_SIZE; i++){
     int j;
     for(j=0; j<BLOCK_SIZE; j++) {
-      output[index] = input[(start_index+(i*BLOCK_SIZE)+j)];
+      output[index] = input[(start_index+(i*N_SIZE)+j)];
       index+=1;
     }
   }
@@ -187,10 +191,14 @@ int main(int argc, char** argv) {
 
   block_a = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
   block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
-
-  load_block(a, block_a, 3);
-  printa(a, N_SIZE);
-  printa(block_a, BLOCK_SIZE);
+  int NUM_BLOCKS = (N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE);
+  printa(a,N_SIZE);
+  int x;
+  for(x =0; x<NUM_BLOCKS; x++){
+	load_block(a, block_a, x);
+	printa(block_a, BLOCK_SIZE);
+  }
+ 
 
 
 
