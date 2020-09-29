@@ -15,14 +15,14 @@
 #include <net/if.h>
 #include <unistd.h>
 //define matrix size
-#define N_SIZE 16
+#define N_SIZE 4
 //define max double size for each element
 #define MAX_DATA_SIZE 16
 //specify the number of nodes to use for computation @ the full sizeof
 //an additional node is needed to compute the remaining Calculations
 //another additional node is needed to receive the resulting segments from the computation nodes and write into 1 results matrix
 #define NUM_NODES 2
-#define BLOCK_SIZE 4
+#define BLOCK_SIZE 2
 
 
 //generates doubles
@@ -62,7 +62,7 @@ void load_block(double* input, double* output, int block_no){
   else{
     start_index = ((block_no-(block_no%(N_SIZE/BLOCK_SIZE)))*BLOCK_SIZE*BLOCK_SIZE)+((block_no%(N_SIZE/BLOCK_SIZE))*BLOCK_SIZE);
   }
-  printf("Load block %d. Starting index: %d\n", block_no, start_index);
+  //printf("Load block %d. Starting index: %d\n", block_no, start_index);
   int index=0;
   int i;
   for (i=0; i<BLOCK_SIZE; i++){
@@ -111,17 +111,22 @@ void compute_matrix(double* a, double* b, double* c, int element, int size){
   int start_col = col;
   int i;
   for (i=0; i< size; i++){
-    int j;
-    for(j=0; j< (size*size);j++){
-      load(a, block_a, start_row+j);
-      load(b,block_b, start_col+(j*size));
-      compute(a_block,b_block, result, j,size );
-    }
+  
+      printf("Loaded block a:%d, and block b:%d for computation\n", start_row+i, start_col+(i*size));
+      load_block(a, block_a, start_row+i);
+      load_block(b,block_b, start_col+(i*size));
+      printa(block_a, size);
+      printa(block_b, size);
+      int j;
+      for(j=0; j< size*size; j++){
+	compute(block_a,block_b, result, j,size );
+      }  
+    printa(result, size);
     //printf("(Element %d*%d)\n", start_row+i, start_col+(i*N_SIZE));
     matrix_add(result, sum, sum, size);
-    printa(sum, size);
   }
-
+  printf("Sum: \n");
+  printa(sum,size);
 }
 
 bool doubles_equal(double a, double b){
@@ -220,17 +225,14 @@ int main(int argc, char** argv) {
   //populate arrays
   populate(a);
   populate(b);
-
-  // block_a = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
-  // block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  printa(a, N_SIZE);
+  printa(b, N_SIZE);
+  block_a = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
   int NUM_BLOCKS = (N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE);
   printa(a,N_SIZE);
   int x;
-  for(x =0; x<NUM_BLOCKS; x++){
-    load_block(a, block_a, x);
-    printa(block_a, BLOCK_SIZE);
-  }
-
+ 
   //start time
 
   //matrix multiplication
