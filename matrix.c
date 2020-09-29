@@ -32,10 +32,10 @@ double generate(double range){
 }
 
 //prints an array
-void printa(double* array){
+void printa(double* array, int size){
   int i=0;
-  for (i=0; i< (N_SIZE *N_SIZE); i++){
-    if( i % N_SIZE ==0){
+  for (i=0; i< (size *size); i++){
+    if( i % size ==0){
       printf("\n");
     }
     printf("%f\t", array[i]);
@@ -233,8 +233,8 @@ int main(int argc, char** argv) {
 //   //NODE receives results from computation nodes, and writes into a unified c matrix.
 //   if(world_rank == NUM_NODES+1){
 //     int i;
-//     //printa(a);
-//     //printa(b);
+//     //printa(a,N_SIZE);
+//     //printa(b, N_SIZE);
 //     for(i=0; i<=NUM_NODES; i++){
 //       if(i==NUM_NODES){
 //         MPI_Recv(&c[NUM_NODES*calculations], remainingCalculations, MPI_DOUBLE, NUM_NODES, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -247,7 +247,7 @@ int main(int argc, char** argv) {
 //     //check output
 //
 //     //print results
-//     //printa(c);
+//     //printa(c,N_SIZE);
 //
 //     check_output(a, b, c);
 //
