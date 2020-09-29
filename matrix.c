@@ -60,7 +60,7 @@ void load_block(double* input, double* output, int block_no){
   int start_index;
   if((block_no%(N_SIZE/BLOCK_SIZE) ==0)) start_index = block_no*BLOCK_SIZE*BLOCK_SIZE;
   else{
-  	start_index = ((block_no-(block_no%(N_SIZE/BLOCK_SIZE)))*BLOCK_SIZE*BLOCK_SIZE)+((block_no%(N_SIZE/BLOCK_SIZE))*BLOCK_SIZE);
+    start_index = ((block_no-(block_no%(N_SIZE/BLOCK_SIZE)))*BLOCK_SIZE*BLOCK_SIZE)+((block_no%(N_SIZE/BLOCK_SIZE))*BLOCK_SIZE);
   }
   printf("Load block %d. Starting index: %d\n", block_no, start_index);
   int index=0;
@@ -90,6 +90,38 @@ void compute(double* a, double* b, double* c, int element, int size){
     sum += a[start_row+i]*b[start_col+(i*size)];
   }
   c[element] = sum;
+}
+void matrix_add(double*a, double*b, double*c, int size){
+  int i;
+  for(i=0; i<size*size; i++){
+    c[i] = a[i] + b[i];
+  }
+}
+//compute the block matrix // size is the size of the block matrix
+void compute_matrix(double* a, double* b, double* c, int element, int size){
+  int row = (element / size) ;
+  int col = (element % size) ;
+
+  double* block_a = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  double* block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+
+  double* sum= (double*) malloc(size*size*sizeof(double));
+  double* result= (double*) malloc(size*size*sizeof(double));
+  int start_row = row*size;
+  int start_col = col;
+  int i;
+  for (i=0; i< size; i++){
+    int j;
+    for(j=0; j< (size*size);j++){
+      load(a, block_a, start_row+j);
+      load(b,block_b, start_col+(j*size));
+      compute(a_block,b_block, result, j,size );
+    }
+    //printf("(Element %d*%d)\n", start_row+i, start_col+(i*N_SIZE));
+    matrix_add(result, sum, sum, size);
+    printa(sum, size);
+  }
+
 }
 
 bool doubles_equal(double a, double b){
@@ -189,85 +221,97 @@ int main(int argc, char** argv) {
   populate(a);
   populate(b);
 
-  block_a = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
-  block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  // block_a = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  // block_b = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
   int NUM_BLOCKS = (N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE);
   printa(a,N_SIZE);
   int x;
   for(x =0; x<NUM_BLOCKS; x++){
-	load_block(a, block_a, x);
-	printa(block_a, BLOCK_SIZE);
+    load_block(a, block_a, x);
+    printa(block_a, BLOCK_SIZE);
   }
- 
-
-
 
   //start time
 
   //matrix multiplication
-//   int calculations =( N_SIZE*N_SIZE ) / NUM_NODES;
-//   int remainingCalculations = (N_SIZE*N_SIZE)%NUM_NODES;
-//   int x;
-//   int counter=0;
-//   int done =0;
-//   for(x=0; x<=NUM_NODES; x++){
-//     if(x==NUM_NODES){
-//       if(world_rank ==x){
-//         int i;
-//         double* c_temp;
-//         c_temp = (double*) malloc(remainingCalculations*sizeof(double));
-//         for(i=0; i< remainingCalculations; i++){
-//           compute(a,b,c,(x*calculations)+i,N_SIZE);
-//           c_temp[i] = c[(x*calculations)+i];
-//         }
-//         MPI_Send(c_temp, remainingCalculations, MPI_DOUBLE, NUM_NODES+1, 0, MPI_COMM_WORLD);
-//       }
-//
-//     }
-//     else{
-//       if(world_rank == x){
-//         int i;
-//         double* c_temp;
-//         c_temp = (double*) malloc(calculations*sizeof(double));
-//         for(i=0; i< calculations; i++){
-//           compute(a,b,c,(x*calculations)+i,N_SIZE);
-//           c_temp[i]= c[(x*calculations)+i];
-//         }
-//         MPI_Send(c_temp, calculations, MPI_DOUBLE, NUM_NODES+1, 0, MPI_COMM_WORLD);
-//
-//       }
-//
-//     }
-//   }
-//
-//   //NODE receives results from computation nodes, and writes into a unified c matrix.
-//   if(world_rank == NUM_NODES+1){
-//     int i;
-//     //printa(a,N_SIZE);
-//     //printa(b, N_SIZE);
-//     for(i=0; i<=NUM_NODES; i++){
-//       if(i==NUM_NODES){
-//         MPI_Recv(&c[NUM_NODES*calculations], remainingCalculations, MPI_DOUBLE, NUM_NODES, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-//       }
-//       else{
-//         MPI_Recv(&c[i*calculations], calculations, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-//       }
-//     }
-//     //stop time
-//     //check output
-//
-//     //print results
-//     //printa(c,N_SIZE);
-//
-//     check_output(a, b, c);
-//
-//     int j;
-//     int marker = (NUM_NODES-1)*calculations;
-//     for(j=marker; j< marker+ calculations; j++){
-// //	    printf("%f\t", c[j]);
-//     }
-//
-//  }
+  //do computations for each block
+  int i;
+  for(i=0; i<NUM_BLOCKS; i++){
+
+    int j;
+    for(j=0; j<BLOCK_SIZE; j++){
+
+    }
+  }
+
+  compute_matrix(a,b,c,0, BLOCK_SIZE);
+
+  //start time
+
+  //matrix multiplication
+  //   int calculations =( N_SIZE*N_SIZE ) / NUM_NODES;
+  //   int remainingCalculations = (N_SIZE*N_SIZE)%NUM_NODES;
+  //   int x;
+  //   int counter=0;
+  //   int done =0;
+  //   for(x=0; x<=NUM_NODES; x++){
+  //     if(x==NUM_NODES){
+  //       if(world_rank ==x){
+  //         int i;
+  //         double* c_temp;
+  //         c_temp = (double*) malloc(remainingCalculations*sizeof(double));
+  //         for(i=0; i< remainingCalculations; i++){
+  //           compute(a,b,c,(x*calculations)+i,N_SIZE);
+  //           c_temp[i] = c[(x*calculations)+i];
+  //         }
+  //         MPI_Send(c_temp, remainingCalculations, MPI_DOUBLE, NUM_NODES+1, 0, MPI_COMM_WORLD);
+  //       }
+  //
+  //     }
+  //     else{
+  //       if(world_rank == x){
+  //         int i;
+  //         double* c_temp;
+  //         c_temp = (double*) malloc(calculations*sizeof(double));
+  //         for(i=0; i< calculations; i++){
+  //           compute(a,b,c,(x*calculations)+i,N_SIZE);
+  //           c_temp[i]= c[(x*calculations)+i];
+  //         }
+  //         MPI_Send(c_temp, calculations, MPI_DOUBLE, NUM_NODES+1, 0, MPI_COMM_WORLD);
+  //
+  //       }
+  //
+  //     }
+  //   }
+  //
+  //   //NODE receives results from computation nodes, and writes into a unified c matrix.
+  //   if(world_rank == NUM_NODES+1){
+  //     int i;
+  //     //printa(a,N_SIZE);
+  //     //printa(b, N_SIZE);
+  //     for(i=0; i<=NUM_NODES; i++){
+  //       if(i==NUM_NODES){
+  //         MPI_Recv(&c[NUM_NODES*calculations], remainingCalculations, MPI_DOUBLE, NUM_NODES, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  //       }
+  //       else{
+  //         MPI_Recv(&c[i*calculations], calculations, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  //       }
+  //     }
+  //     //stop time
+  //     //check output
+  //
+  //     //print results
+  //     //printa(c,N_SIZE);
+  //
+  //     check_output(a, b, c);
+  //
+  //     int j;
+  //     int marker = (NUM_NODES-1)*calculations;
+  //     for(j=marker; j< marker+ calculations; j++){
+  // //	    printf("%f\t", c[j]);
+  //     }
+  //
+  //  }
 
   // Finalize the MPI environment. No more MPI calls can be made after this
   MPI_Finalize();
