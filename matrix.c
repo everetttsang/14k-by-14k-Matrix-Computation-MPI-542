@@ -115,7 +115,7 @@ void col_load(double*input, double*output, int col){
 void row_load(double* input, double* output, int row){
   int i;
   for(i=0; i<N_SIZE*BLOCK_SIZE; i++){
-       output[i]= input[i+(row*N_SIZE)];
+       output[i]= input[i+(BLOCK_SIZE*N_SIZE*row)];
   }
 }
 //compute one element within a matrix of index element
@@ -311,7 +311,7 @@ if(world_rank==0){
   }
   compute_matrix(buffer, c_block, 0, blocks_length);
   write_block(c_block, d, 0);
-  print(c_block,BLOCK_SIZE);
+  printa(c_block,BLOCK_SIZE);
   buf_zero(c_block);
   //printa(d, N_SIZE);
 
@@ -321,8 +321,8 @@ if(world_rank==0){
     int col = (f % blocks_length) ;
     row_load(a,buffer, row);
     col_load(b,buffer, col);
-    compute(buffer, c_bock, f, blocks_length);
-    print(c_block, BLOCK_SIZE);
+    compute_matrix(buffer, c_block, f, blocks_length);
+    printa(c_block, BLOCK_SIZE);
     buf_zero(c_block);
   }
   //receive block data
