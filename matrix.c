@@ -265,11 +265,11 @@ int main(int argc, char** argv) {
         for(x=0; x<num_blocks; x++){
 
           load_block(a, temp, (row*num_blocks)+x );
-          write_block(temp, sendBuf, x);)
+          write_block(temp, sendBuf, x);
         }
       }
       int x;
-      for(x=0; x<num_blocs; x++){
+      for(x=0; x<num_blocks; x++){
         load_block(b, temp, col+(num_blocks*x) );
         write_block(temp, sendBuf, x+num_blocks);
       }
