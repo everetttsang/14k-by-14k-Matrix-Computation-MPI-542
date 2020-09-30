@@ -24,7 +24,7 @@
 //#define NUM_NODES 2  - NUM NODES ONLY SPECIFIED FOR LINEAR MATRIX MULTIPLICATION
 
 //define the size of a subsequent square block matrix. Will contain BLOCK_SIZE by BLOCK_SIZE elements
-#define BLOCK_SIZE 1400
+#define BLOCK_SIZE 3500
 
 
 //generates doubles
