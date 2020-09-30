@@ -15,7 +15,7 @@
 #include <net/if.h>
 #include <unistd.h>
 //define largest matrix size
-#define N_SIZE 14000
+#define N_SIZE 4
 //define max double size for each element
 #define MAX_DATA_SIZE 10
 //specify the number of nodes to use for computation @ the full sizeof
@@ -24,7 +24,7 @@
 //#define NUM_NODES 2  - NUM NODES ONLY SPECIFIED FOR LINEAR MATRIX MULTIPLICATION
 
 //define the size of a subsequent square block matrix. Will contain BLOCK_SIZE by BLOCK_SIZE elements
-#define BLOCK_SIZE 1400
+#define BLOCK_SIZE 2
 
 
 //generates doubles
@@ -112,7 +112,7 @@ void compute(double* a, double* b, double* c, int element, int size){
 }
 
 //Compute the block matrix multiplication. Size is the size of the block matrix
-void compute_matrix(double* a, double* b, double* c, int element, int size){
+void compute_matrix(double* input, double* output, int element, int size){
   int num_blocks = (N_SIZE/BLOCK_SIZE);
   int row = (element / (N_SIZE/BLOCK_SIZE)) ;
   int col = (element % (N_SIZE/BLOCK_SIZE)) ;
@@ -129,8 +129,8 @@ void compute_matrix(double* a, double* b, double* c, int element, int size){
   for (i=0; i< num_blocks; i++){
     //printf("Loaded block a:%d, and block b:%d for computation of block %d Row%d Col%d\n", (row*num_blocks)+i, col+(num_blocks*i),element,row,col);
     //load two matrices for multiplication
-    load_block(a, block_a, (row*num_blocks)+i );
-    load_block(b,block_b, col+(num_blocks*i));
+    load_block(input, block_a, i );
+    load_block(input,block_b, i+num_blocks);
     int j;
     for(j=0; j< BLOCK_SIZE*BLOCK_SIZE; j++){
       compute(block_a,block_b, result, j,BLOCK_SIZE );
@@ -139,7 +139,7 @@ void compute_matrix(double* a, double* b, double* c, int element, int size){
     //Add matrix multiplication result into the sum
     int k;
     for(k=0; k< BLOCK_SIZE*BLOCK_SIZE; k++){
-    	c[k] += result[k];
+    	output[k] += result[k];
     }
 
   }
@@ -248,6 +248,7 @@ if(world_rank==0){
   populate(a);
   populate(b);
   int NUM_BLOCKS = (N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE);
+  int blocks_length = (N_SIZE/BLOCK_SIZE);
   int x;
 
 
@@ -259,11 +260,33 @@ if(world_rank==0){
 
   double start_time = MPI_Wtime();
   printf("Start %f\n", start_time);
+  printa(a, N_SIZE);
+  printa(b, N_SIZE);
+  printa(d, N_SIZE);
+  
+  double* buffer = (double*) malloc(2*blocks_length*BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  double* temp = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  
 
-  compute_matrix(a,b,c_block,0,BLOCK_SIZE);
-  write_block(c_block, d,0);
+  //compute_matrix(a,b,c_block,0,BLOCK_SIZE);
+  //write_block(c_block, d,0);
   //start sending block data
-
+  int i;
+  for(i=0; i<N_SIZE*BLOCK_SIZE; i++){
+       buffer[i]= a[i];     
+  }
+  int h;
+  for(h=0; h<blocks_length; h++){
+       load_block(b, temp, 0+(blocks_length*h));
+       write_block(temp, buffer, blocks_length+h);
+  }
+  int printi;
+  for(printi=0; printi< sizeof(buffer); printi++){
+       printf("%f\t", buffer[printi]);
+       if (printi%N_SIZE==0) printf("\n");
+  }
+  compute_matrix(buffer, c_block, 0, blocks_length);
+  printa(c_block,BLOCK_SIZE);
   //receive block data
   for(j=0; j<NUM_BLOCKS; j++){
       //MPI_Recv(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -272,15 +295,19 @@ if(world_rank==0){
   //stop timeval
   gettimeofday(&end, NULL);
   long int duration = (end.tv_sec*1e6 + end.tv_usec) - (start.tv_sec*1e6 + start.tv_usec);
-  printf("Calculation Run Time: %d microseconds\n");
+  //printf("Calculation Run Time: %d microseconds\n");
   double end_time = MPI_Wtime();
-  printf("End %f\n", end_time);
+  //printf("End %f\n", end_time);
   //print a , b input matrices and the resulting matrix d
   //printa(a,N_SIZE);
   //printa(b,N_SIZE);
   //printa(d,N_SIZE);
   //check_output(a, b, d);
-  printf("End of checktime %f\n", MPI_Wtime());
+  //printf("End of checktime %f\n", MPI_Wtime());
+  free(a);
+  free(b);
+  free(c);
+  free(d);
 }
 // int i;
 // for(i=1; i<NUM_BLOCKS; i++){
@@ -365,8 +392,8 @@ if(world_rank==0){
   // Finalize the MPI environment. No more MPI calls can be made after this
   MPI_Finalize();
 
-  free(a);
-  free(b);
-  free(c);
-  free(d);
+//  free(a);
+  //free(b);
+  //free(c);
+  //free(d);
 }
