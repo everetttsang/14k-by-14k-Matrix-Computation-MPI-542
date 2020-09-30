@@ -15,7 +15,7 @@
 #include <net/if.h>
 #include <unistd.h>
 //define largest matrix size
-#define N_SIZE 4
+#define N_SIZE 14000
 //define max double size for each element
 #define MAX_DATA_SIZE 10
 //specify the number of nodes to use for computation @ the full sizeof
@@ -24,7 +24,7 @@
 //#define NUM_NODES 2  - NUM NODES ONLY SPECIFIED FOR LINEAR MATRIX MULTIPLICATION
 
 //define the size of a subsequent square block matrix. Will contain BLOCK_SIZE by BLOCK_SIZE elements
-#define BLOCK_SIZE 2
+#define BLOCK_SIZE 1400
 
 
 //generates doubles
@@ -278,18 +278,18 @@ if(world_rank==0){
   int j;
   d = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
   rcv = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
-
-  double start_time = MPI_Wtime();
-  printf("Start %f\n", start_time);
-  printa(a, N_SIZE);
-  printa(b, N_SIZE);
-  printa(d, N_SIZE);
+  double* temp = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  double start_time;
+  //printf("Start %f\n", start_time);
+  //printa(a, N_SIZE);
+  //printa(b, N_SIZE);
+  //printa(d, N_SIZE);
 
   double* buffer = (double*) malloc(2*blocks_length*BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
 
 
 
-
+  start_time = MPI_Wtime();
   row_load(a, buffer, 0);
   col_load(b, buffer, 0);
 
@@ -300,8 +300,8 @@ if(world_rank==0){
   // }
   compute_matrix(buffer, c_block, 0, blocks_length);
   write_block(c_block, d, 0);
-  printa(c_block,BLOCK_SIZE);
-  buf_zero(c_block);
+  //printa(c_block,BLOCK_SIZE);
+  //buf_zero(c_block);
   //printa(d, N_SIZE);
 
   //send data
@@ -313,18 +313,18 @@ if(world_rank==0){
     col_load(b,buffer, col);
     MPI_Send(buffer, 2*blocks_length*BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, f, 0, MPI_COMM_WORLD);
 
-    printa(c_block, BLOCK_SIZE);
-    buf_zero(c_block);
+    //printa(c_block, BLOCK_SIZE);
+    //buf_zero(c_block);
   }
   //receive block data
   for(j=1; j<NUM_BLOCKS; j++){
-      MPI_Recv(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      write_block(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], d,j);
-      printa(d, N_SIZE*N_SIZE);
+      MPI_Recv(temp, BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      write_block(temp, d,j);
+      //printa(d, N_SIZE);
   }
   //stop timeval
-  gettimeofday(&end, NULL);
-  long int duration = (end.tv_sec*1e6 + end.tv_usec) - (start.tv_sec*1e6 + start.tv_usec);
+  //gettimeofday(&end, NULL);
+  //long int duration = (end.tv_sec*1e6 + end.tv_usec) - (start.tv_sec*1e6 + start.tv_usec);
   //printf("Calculation Run Time: %d microseconds\n");
   double end_time = MPI_Wtime();
   //printf("End %f\n", end_time);
@@ -332,24 +332,30 @@ if(world_rank==0){
   //printa(a,N_SIZE);
   //printa(b,N_SIZE);
   //printa(d,N_SIZE);
-  //check_output(a, b, d);
-  //printf("End of checktime %f\n", MPI_Wtime());
+  check_output(a, b, d);
+  double duration = end_time - start_time;
+  printf("TIME START: %f\nTIME END: %f\nDURATION: %f\n",start_time, end_time, end_time - start_time);
+  printf("End of checktime %f\n", MPI_Wtime());
   free(a);
   free(b);
   free(c);
+  free(c_block);
+  free(rcv);
   free(d);
+  free(temp);
+  free(buffer);
 }
 int i;
 for(i=1; i<(N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE); i++){
   if(world_rank==i){
     double* buffer = (double*)malloc(2*N_SIZE*BLOCK_SIZE*sizeof(double));
     double* c_block = (double* ) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
-    MPI_Recv(buffer, 2*blocks_length*BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(buffer, 2*N_SIZE*BLOCK_SIZE, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     compute_matrix(buffer, c_block, i, N_SIZE/BLOCK_SIZE);
     //printa(c_block, BLOCK_SIZE);
     MPI_Send(c_block, BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-    free(c_block);
-    free(buffer);
+    //free(c_block);
+    //free(buffer);
   }
 }
 
