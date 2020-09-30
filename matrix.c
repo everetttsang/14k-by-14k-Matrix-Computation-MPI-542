@@ -319,8 +319,8 @@ if(world_rank==0){
   //receive block data
   for(j=1; j<NUM_BLOCKS; j++){
       MPI_Recv(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      printa(&c[j*(BLOCK_SIZE*BLOCK_SIZE),BLOCK_SIZE*BLOCK_SIZE);
-      //write_block(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], d,j);
+      write_block(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], d,j);
+      printa(d, N_SIZE*N_SIZE);
   }
   //stop timeval
   gettimeofday(&end, NULL);
@@ -340,9 +340,9 @@ if(world_rank==0){
   free(d);
 }
 int i;
-for(i=1; i<NUM_BLOCKS; i++){
+for(i=1; i<(N_SIZE/BLOCK_SIZE)*(N_SIZE/BLOCK_SIZE); i++){
   if(world_rank==i){
-    double* buffer = (double*)malloc(2*blocks_length*BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+    double* buffer = (double*)malloc(2*N_SIZE*BLOCK_SIZE*sizeof(double));
     double* c_block = (double* ) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
     MPI_Recv(buffer, 2*blocks_length*BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     compute_matrix(buffer, c_block, i, N_SIZE/BLOCK_SIZE);
