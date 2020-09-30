@@ -289,45 +289,37 @@ if(world_rank==0){
 
 
 
-  //compute_matrix(a,b,c_block,0,BLOCK_SIZE);
-  //write_block(c_block, d,0);
-  //start sending block data
-  // int i;
-  // for(i=0; i<N_SIZE*BLOCK_SIZE; i++){
-  //      buffer[i]= a[i];
-  // }
-  row_load(a, buffer, 0);
 
-  // int h;
-  // for(h=0; h<blocks_length; h++){
-  //      load_block(b, temp, 0+(blocks_length*h));
-  //      write_block(temp, buffer, blocks_length+h);
-  // }
+  row_load(a, buffer, 0);
   col_load(b, buffer, 0);
-  int printi;
-  for(printi=0; printi< sizeof(buffer); printi++){
-       printf("%f\t", buffer[printi]);
-       if (printi%N_SIZE==0) printf("\n");
-  }
+
+  // int printi;
+  // for(printi=0; printi< sizeof(buffer); printi++){
+  //      printf("%f\t", buffer[printi]);
+  //      if (printi%N_SIZE==0) printf("\n");
+  // }
   compute_matrix(buffer, c_block, 0, blocks_length);
   write_block(c_block, d, 0);
   printa(c_block,BLOCK_SIZE);
   buf_zero(c_block);
   //printa(d, N_SIZE);
 
+  //send data
   int f;
   for(f=1; f< NUM_BLOCKS; f++){
     int row = (f / blocks_length) ;
     int col = (f % blocks_length) ;
     row_load(a,buffer, row);
     col_load(b,buffer, col);
-    compute_matrix(buffer, c_block, f, blocks_length);
+    MPI_Send(buffer, 2*blocks_length*BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, f, 0, MPI_COMM_WORLD);
+
     printa(c_block, BLOCK_SIZE);
     buf_zero(c_block);
   }
   //receive block data
-  for(j=0; j<NUM_BLOCKS; j++){
-      //MPI_Recv(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  for(j=1; j<NUM_BLOCKS; j++){
+      MPI_Recv(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      printa(&c[j*(BLOCK_SIZE*BLOCK_SIZE),BLOCK_SIZE*BLOCK_SIZE);
       //write_block(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], d,j);
   }
   //stop timeval
@@ -347,17 +339,19 @@ if(world_rank==0){
   free(c);
   free(d);
 }
-// int i;
-// for(i=1; i<NUM_BLOCKS; i++){
-//   if(world_rank==i){
-//     double* c_block = (double* ) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
-//
-//     compute_matrix(a,b,c_block,i,BLOCK_SIZE);
-//     //printa(c_block, BLOCK_SIZE);
-//     MPI_Send(c_block, BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, NUM_BLOCKS, 0, MPI_COMM_WORLD);
-//     free(c_block);
-//   }
-// }
+int i;
+for(i=1; i<NUM_BLOCKS; i++){
+  if(world_rank==i){
+    double* buffer = (double*)malloc(2*blocks_length*BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+    double* c_block = (double* ) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+    MPI_Recv(buffer, 2*blocks_length*BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    compute_matrix(buffer, c_block, i, N_SIZE/BLOCK_SIZE);
+    //printa(c_block, BLOCK_SIZE);
+    MPI_Send(c_block, BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    free(c_block);
+    free(buffer);
+  }
+}
 
 
   //start time
