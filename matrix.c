@@ -104,7 +104,7 @@ void col_load(double*input, double*output, int col){
        load_block(input, temp, col+((N_SIZE/BLOCK_SIZE)*h));
        write_block(temp, output, (N_SIZE/BLOCK_SIZE)+h);
   }
-
+  free(temp);
 }
 void row_load(double* input, double* output, int row){
   int i;
@@ -304,7 +304,19 @@ if(world_rank==0){
        if (printi%N_SIZE==0) printf("\n");
   }
   compute_matrix(buffer, c_block, 0, blocks_length);
-  printa(c_block,BLOCK_SIZE);
+  write_block(c_block, d, 0);
+  print(c_block,BLOCK_SIZE);
+  //printa(d, N_SIZE);
+
+  int f;
+  for(f=1; f< NUM_BLOCKS; f++){
+    int row = (f / blocks_length) ;
+    int col = (f % blocks_length) ;
+    row_load(a,buffer, row);
+    col_load(b,buffer, col);
+    compute(buffer, c_bock, f, blocks_length);
+    print(c_block, BLOCK_SIZE);
+  }
   //receive block data
   for(j=0; j<NUM_BLOCKS; j++){
       //MPI_Recv(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
