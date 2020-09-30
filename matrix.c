@@ -247,6 +247,7 @@ int main(int argc, char** argv) {
   int x;
 
   //start time
+  gettimeofday(&start, NULL);
 
   //matrix multiplication
   //Send each block to be done by another rank.
@@ -270,6 +271,9 @@ int main(int argc, char** argv) {
         write_block(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], d,j);
     }
     //stop timeval
+    gettimeofday(&end, NULL);
+    long int duration = (end.tv_sec*1e6 + end.tv_usec) - (start.tv_sec*1e6 + start.tv_usec);
+    printf("Calculation Run Time: %d microseconds\n");
 
     //print a , b input matrices and the resulting matrix d
     //printa(a,N_SIZE);
