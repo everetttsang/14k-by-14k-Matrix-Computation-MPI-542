@@ -255,7 +255,7 @@ int main(int argc, char** argv) {
   for(i=0; i<NUM_BLOCKS; i++){
     if(world_rank==i){
       double*c_block = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
-
+      MPI_Barrier(MPI_COMM_WORLD);
       compute_matrix(a,b,c_block,i,BLOCK_SIZE);
       //printa(c_block, BLOCK_SIZE);
       MPI_Send(c_block, BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, NUM_BLOCKS, 0, MPI_COMM_WORLD);
@@ -266,6 +266,9 @@ int main(int argc, char** argv) {
     int j;
     double* d = (double*) malloc(N_SIZE*N_SIZE*sizeof(double));
     double* rcv = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+    MPI_Barrier(MPI_COMM_WORLD);
+    double start_time = MPI_Wtime();
+    printf("Start %f\n", start_time);
     for(j=0; j<NUM_BLOCKS; j++){
         MPI_Recv(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], BLOCK_SIZE*BLOCK_SIZE, MPI_DOUBLE, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         write_block(&c[j*(BLOCK_SIZE*BLOCK_SIZE)], d,j);
@@ -274,12 +277,14 @@ int main(int argc, char** argv) {
     gettimeofday(&end, NULL);
     long int duration = (end.tv_sec*1e6 + end.tv_usec) - (start.tv_sec*1e6 + start.tv_usec);
     printf("Calculation Run Time: %d microseconds\n");
-
+    double end_time = MPI_Wtime();
+    printf("End %f\n", end_time);
     //print a , b input matrices and the resulting matrix d
     //printa(a,N_SIZE);
     //printa(b,N_SIZE);
     //printa(d,N_SIZE);
     check_output(a, b, d);
+    printf("End of checktime %f\n", MPI_Wtime());
   }
 
   //start time
