@@ -76,6 +76,12 @@ void load_block(double* input, double* output, int block_no){
     }
   }
 }
+void buf_zero(double* input){
+  int i;
+  for(i=0; i< sizeof(input); i++){
+    input[i]= 0.0;
+  }
+}
 
 
 //write a 1D array into a block
@@ -306,6 +312,7 @@ if(world_rank==0){
   compute_matrix(buffer, c_block, 0, blocks_length);
   write_block(c_block, d, 0);
   print(c_block,BLOCK_SIZE);
+  buf_zero(c_block);
   //printa(d, N_SIZE);
 
   int f;
@@ -316,6 +323,7 @@ if(world_rank==0){
     col_load(b,buffer, col);
     compute(buffer, c_bock, f, blocks_length);
     print(c_block, BLOCK_SIZE);
+    buf_zero(c_block);
   }
   //receive block data
   for(j=0; j<NUM_BLOCKS; j++){
