@@ -13,5 +13,5 @@ clean:
 run:
 	sbatch run.job
 
-queue:
+q:
 	squeue -u everettt
