@@ -76,21 +76,7 @@ void load_block(double* input, double* output, int block_no){
     }
   }
 }
-void col_load(double*input, double*output, int col){
-  double* temp = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
-  int h;
-  for(h=0; h<N_SIZE/BLOCK_SIZE; h++){
-       load_block(input, temp, col+((N_SIZE/BLOCK_SIZE)*h));
-       write_block(temp, output, (N_SIZE/BLOCK_SIZE)+h);
-  }
 
-}
-void row_load(double* input, double* output, int row){
-  int i;
-  for(i=0; i<N_SIZE*BLOCK_SIZE; i++){
-       output[i]= input[i+(row*N_SIZE)];
-  }
-}
 
 //write a 1D array into a block
 void write_block(double* input, double* output, int block_no){
@@ -111,7 +97,21 @@ void write_block(double* input, double* output, int block_no){
     }
   }
 }
+void col_load(double*input, double*output, int col){
+  double* temp = (double*) malloc(BLOCK_SIZE*BLOCK_SIZE*sizeof(double));
+  int h;
+  for(h=0; h<N_SIZE/BLOCK_SIZE; h++){
+       load_block(input, temp, col+((N_SIZE/BLOCK_SIZE)*h));
+       write_block(temp, output, (N_SIZE/BLOCK_SIZE)+h);
+  }
 
+}
+void row_load(double* input, double* output, int row){
+  int i;
+  for(i=0; i<N_SIZE*BLOCK_SIZE; i++){
+       output[i]= input[i+(row*N_SIZE)];
+  }
+}
 //compute one element within a matrix of index element
 void compute(double* a, double* b, double* c, int element, int size){
   int row = (element / size) ;
