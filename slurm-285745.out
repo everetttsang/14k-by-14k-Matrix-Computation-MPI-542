@@ -1,0 +1,7 @@
+/var/spool/slurm/d/job285745/slurm_script: line 4: ::#SBATCH: command not found
+/var/spool/slurm/d/job285745/slurm_script: line 5: ::#SBATCH: command not found
+/var/spool/slurm/d/job285745/slurm_script: line 6: ::#SBATCH: command not found
+CONGRATULATIONS, OUTPUT SUCCESSFUL!
+TIME START: 0.000000
+TIME END: 126.912900
+DURATION: 126.912900
